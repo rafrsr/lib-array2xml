@@ -25,60 +25,34 @@ namespace Rafrsr\LibArray2Xml;
  */
 class XML2Array
 {
-    /**
-     * @var \DOMDocument|null
-     */
-    private static $xml = null;
-
-    /**
-     * @var string
-     */
-    private static $encoding = 'UTF-8';
-
-    /**
-     * @var string
-     */
-    private static $prefixAttributes = '@';
-
-    /**
-     * Initialize the root XML node [optional]
-     *
-     * @param $version
-     * @param $encoding
-     * @param $format_output
-     */
-    public static function init($version = '1.0', $encoding = 'UTF-8', $format_output = true)
-    {
-        self::$xml = new \DOMDocument($version, $encoding);
-        self::$xml->formatOutput = $format_output;
-        self::$encoding = $encoding;
-    }
+    use  CommonsTrait;
 
     /**
      * Convert an XML to Array
      *
-     * @param string $input_xml - xml to convert
+     * @param string $inputXml - xml to convert
      *
      * @return \DOMDocument
      * @throws \InvalidArgumentException
      */
-    public static function &createArray($input_xml)
+    public static function createArray($inputXml)
     {
         $xml = self::getXMLRoot();
-        if (is_string($input_xml)) {
-            $parsed = $xml->loadXML($input_xml);
+        if (is_string($inputXml)) {
+            $parsed = $xml->loadXML($inputXml);
             if (!$parsed) {
                 throw new \InvalidArgumentException('[XML2Array] Error parsing the XML string.');
             }
         } else {
-            if (get_class($input_xml) !== 'DOMDocument') {
+            if (get_class($inputXml) !== 'DOMDocument') {
                 throw new \InvalidArgumentException('[XML2Array] The input XML object should be of type: DOMDocument.');
             }
-            $xml = self::$xml = $input_xml;
+            $xml = self::$xml = $inputXml;
         }
         $array = [];
         $array[$xml->documentElement->tagName] = self::convert($xml->documentElement);
-        self::$xml = null;    // clear the xml node in the class for 2nd time use.
+        self::$xml = null;// clear the xml node in the class for 2nd time use.
+
         return $array;
     }
 
@@ -89,7 +63,7 @@ class XML2Array
      *
      * @return mixed
      */
-    private static function &convert($node)
+    private static function convert($node)
     {
         $output = [];
 
@@ -111,7 +85,7 @@ class XML2Array
                         $t = $child->tagName;
 
                         // assume more nodes of same kind are coming
-                        if (!isset($output[$t])) {
+                        if (!array_key_exists($t, $output)) {
                             $output[$t] = [];
                         }
                         $output[$t][] = $v;
@@ -130,7 +104,7 @@ class XML2Array
                             $output[$t] = $v[0];
                         }
                     }
-                    if (empty($output)) {
+                    if (count($output) === 0) {
                         //for empty nodes
                         $output = '';
                     }
@@ -152,17 +126,5 @@ class XML2Array
         }
 
         return $output;
-    }
-
-    /*
-     * Get the root XML node, if there isn't one, create it.
-     */
-    private static function getXMLRoot()
-    {
-        if (self::$xml === null) {
-            self::init();
-        }
-
-        return self::$xml;
     }
 }

@@ -27,99 +27,79 @@ namespace Rafrsr\LibArray2Xml;
  */
 class Array2XML
 {
-    /**
-     * @var \DOMDocument
-     */
-    private static $xml = null;
-
-    /**
-     * @var string
-     */
-    private static $encoding = 'UTF-8';
-
-    /**
-     * Initialize the root XML node [optional]
-     *
-     * @param $version
-     * @param $encoding
-     * @param $format_output
-     */
-    public static function init($version = '1.0', $encoding = 'UTF-8', $format_output = true)
-    {
-        self::$xml = new \DOMDocument($version, $encoding);
-        self::$xml->formatOutput = $format_output;
-        self::$encoding = $encoding;
-    }
+    use CommonsTrait;
 
     /**
      * Convert an Array to XML
      *
-     * @param string $node_name - name of the root node to be converted
-     * @param array  $arr       - aray to be converterd
+     * @param string $nodeName - name of the root node to be converted
+     * @param mixed  $data     - content to put into the xml
      *
      * @return \DOMDocument
+     * @throws \InvalidArgumentException
      */
-    public static function &createXML($node_name, $arr = [])
+    public static function createXML($nodeName, $data)
     {
         $xml = self::getXMLRoot();
-        $xml->appendChild(self::convert($node_name, $arr));
+        $xml->appendChild(self::convert($nodeName, $data));
 
-        self::$xml = null;    // clear the xml node in the class for 2nd time use.
+        self::$xml = null;// clear the xml node in the class for 2nd time use.
+
         return $xml;
     }
 
     /**
      * Convert an Array to XML
      *
-     * @param string $node_name - name of the root node to be converted
-     * @param array  $arr       - aray to be converterd
+     * @param string $nodeName - name of the root node to be converted
+     * @param mixed  $data     - content to put into the xml
      *
      * @return \DOMNode
      * @throws \InvalidArgumentException
      */
-    private static function &convert($node_name, $arr = [])
+    private static function convert($nodeName, $data)
     {
-
-        //print_arr($node_name);
+        //print_arr($nodeName);
         $xml = self::getXMLRoot();
-        $node = $xml->createElement($node_name);
+        $node = $xml->createElement($nodeName);
 
-        if (is_array($arr)) {
+        if (is_array($data)) {
             // get the attributes first.;
-            if (isset($arr['@attributes'])) {
-                foreach ($arr['@attributes'] as $key => $value) {
+            if (array_key_exists(self::$prefixAttributes . 'attributes', $data)) {
+                foreach ($data[self::$prefixAttributes . 'attributes'] as $key => $value) {
                     if (!self::isValidTagName($key)) {
-                        throw new \InvalidArgumentException('[Array2XML] Illegal character in attribute name. attribute: ' . $key . ' in node: ' . $node_name);
+                        $msg = sprintf('[Array2XML] Illegal character in attribute name. attribute: %s in node: %s', $key, $nodeName);
+                        throw new \InvalidArgumentException($msg);
                     }
                     $node->setAttribute($key, self::bool2str($value));
                 }
-                unset($arr['@attributes']); //remove the key from the array once done.
+                unset($data[self::$prefixAttributes . 'attributes']); //remove the key from the array once done.
             }
 
             // check if it has a value stored in @value, if yes store the value and return
             // else check if its directly stored as string
-            if (isset($arr['@value'])) {
-                $node->appendChild($xml->createTextNode(self::bool2str($arr['@value'])));
-                unset($arr['@value']);    //remove the key from the array once done.
+            if (array_key_exists(self::$prefixAttributes . 'value', $data)) {
+                $node->appendChild($xml->createTextNode(self::bool2str($data[self::$prefixAttributes . 'value'])));
+                unset($data[self::$prefixAttributes . 'value']);    //remove the key from the array once done.
                 //return from recursion, as a note with value cannot have child nodes.
                 return $node;
             } else {
-                if (isset($arr['@cdata'])) {
-                    $node->appendChild($xml->createCDATASection(self::bool2str($arr['@cdata'])));
-                    unset($arr['@cdata']);    //remove the key from the array once done.
+                if (array_key_exists(self::$prefixAttributes . 'cdata', $data)) {
+                    $node->appendChild($xml->createCDATASection(self::bool2str($data[self::$prefixAttributes . 'cdata'])));
+                    unset($data[self::$prefixAttributes . 'cdata']);    //remove the key from the array once done.
                     //return from recursion, as a note with cdata cannot have child nodes.
                     return $node;
                 }
             }
         }
 
-        //create subnodes using recursion
-        if (is_array($arr)) {
+        //create sub-nodes using recursion
+        if (is_array($data)) {
             // recurse to get the node for that key
-            foreach ($arr as $key => $value) {
+            foreach ($data as $key => $value) {
                 if (!self::isValidTagName($key)) {
-
-                    throw new \InvalidArgumentException('[Array2XML] Illegal character in tag name. tag: ' . $key . ' in node: ' . $node_name);
+                    $msg = sprintf('[Array2XML] Illegal character in tag name. tag: %s in node: %s', $key, $nodeName);
+                    throw new \InvalidArgumentException($msg);
                 }
 
                 if (is_array($value) && reset($value) && is_numeric(key($value))) {
@@ -133,31 +113,17 @@ class Array2XML
                     // ONLY ONE NODE OF ITS KIND
                     $node->appendChild(self::convert($key, $value));
                 }
-                unset($arr[$key]); //remove the key from the array once done.
+                unset($data[$key]); //remove the key from the array once done.
             }
         }
 
         // after we are done with all the keys in the array (if it is one)
         // we check if it has any text value, if yes, append it.
-        if (!is_array($arr)) {
-            $node->appendChild($xml->createTextNode(self::bool2str($arr)));
+        if (!is_array($data)) {
+            $node->appendChild($xml->createTextNode(self::bool2str($data)));
         }
 
         return $node;
-    }
-
-    /*
-     * Get the root XML node, if there isn't one, create it.
-     *
-     *
-     */
-    private static function getXMLRoot()
-    {
-        if (self::$xml === null) {
-            self::init();
-        }
-
-        return self::$xml;
     }
 
     /*
