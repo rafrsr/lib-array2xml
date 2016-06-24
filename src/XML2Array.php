@@ -38,7 +38,7 @@ class XML2Array
     /**
      * @var string
      */
-    private static $prefix_attributes = '@';
+    private static $prefixAttributes = '@';
 
     /**
      * Initialize the root XML node [optional]
@@ -76,6 +76,7 @@ class XML2Array
             }
             $xml = self::$xml = $input_xml;
         }
+        $array = [];
         $array[$xml->documentElement->tagName] = self::convert($xml->documentElement);
         self::$xml = null;    // clear the xml node in the class for 2nd time use.
         return $array;
@@ -94,7 +95,7 @@ class XML2Array
 
         switch ($node->nodeType) {
             case XML_CDATA_SECTION_NODE:
-                $output[static::$prefix_attributes . 'cdata'] = trim($node->textContent);
+                $output[self::$prefixAttributes . 'cdata'] = trim($node->textContent);
                 break;
 
             case XML_TEXT_NODE:
@@ -102,7 +103,6 @@ class XML2Array
                 break;
 
             case XML_ELEMENT_NODE:
-
                 // for each child node, call the covert function recursively
                 for ($i = 0, $m = $node->childNodes->length; $i < $m; $i++) {
                     $child = $node->childNodes->item($i);
@@ -144,9 +144,9 @@ class XML2Array
                     }
                     // if its an leaf node, store the value in @value instead of directly storing it.
                     if (!is_array($output)) {
-                        $output = [static::$prefix_attributes . 'value' => $output];
+                        $output = [self::$prefixAttributes . 'value' => $output];
                     }
-                    $output[static::$prefix_attributes . 'attributes'] = $a;
+                    $output[self::$prefixAttributes . 'attributes'] = $a;
                 }
                 break;
         }
