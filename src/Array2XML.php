@@ -67,10 +67,7 @@ class Array2XML
             // get the attributes first.;
             if (array_key_exists(self::$prefixAttributes . 'attributes', $data)) {
                 foreach ($data[self::$prefixAttributes . 'attributes'] as $key => $value) {
-                    if (!self::isValidTagName($key)) {
-                        $msg = sprintf('[Array2XML] Illegal character in attribute name. attribute: %s in node: %s', $key, $nodeName);
-                        throw new \InvalidArgumentException($msg);
-                    }
+                    self::validateTagName($key, $nodeName, 'attribute');
                     $node->setAttribute($key, self::bool2str($value));
                 }
                 unset($data[self::$prefixAttributes . 'attributes']); //remove the key from the array once done.
@@ -97,10 +94,7 @@ class Array2XML
         if (is_array($data)) {
             // recurse to get the node for that key
             foreach ($data as $key => $value) {
-                if (!self::isValidTagName($key)) {
-                    $msg = sprintf('[Array2XML] Illegal character in tag name. tag: %s in node: %s', $key, $nodeName);
-                    throw new \InvalidArgumentException($msg);
-                }
+                self::validateTagName($key, $nodeName, 'tag');
 
                 if (is_array($value) && reset($value) && is_numeric(key($value))) {
                     // MORE THAN ONE NODE OF ITS KIND;
@@ -141,11 +135,19 @@ class Array2XML
     /*
      * Check if the tag name or attribute name contains illegal characters
      * Ref: http://www.w3.org/TR/xml/#sec-common-syn
+     *
+     * @param string $tag      tag name to verify
+     * @param string $nodeName node name for informational purposes on error
+     * @param string $type     verify "tag" or "attribute"
      */
-    private static function isValidTagName($tag)
+    private static function validateTagName($tag, $nodeName, $type = 'tag')
     {
         $pattern = '/^[a-z_]+[a-z0-9\:\-\.\_]*[^:]*$/i';
 
-        return preg_match($pattern, $tag, $matches) && $matches[0] === $tag;
+        if (!(preg_match($pattern, $tag, $matches) && $matches[0] === $tag)) {
+            $msg = sprintf('[Array2XML] Illegal character in %s name. %s: %s in node: %s', $type, $type, $tag, $nodeName);
+
+            throw new \InvalidArgumentException($msg);
+        }
     }
 }
