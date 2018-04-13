@@ -32,7 +32,8 @@ class XML2Array
      *
      * @param string $inputXml - xml to convert
      *
-     * @return \DOMDocument
+     * @return array
+     *
      * @throws \InvalidArgumentException
      */
     public static function createArray($inputXml)
