@@ -9,10 +9,10 @@
 
 namespace Rafrsr\LibArray2Xml\Tests;
 
-
+use PHPUnit\Framework\TestCase;
 use Rafrsr\LibArray2Xml\XML2Array;
 
-class XML2ArrayTest extends \PHPUnit_Framework_TestCase
+class XML2ArrayTest extends TestCase
 {
     public function testCreateArray()
     {

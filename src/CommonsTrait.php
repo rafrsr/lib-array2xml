@@ -11,39 +11,26 @@ namespace Rafrsr\LibArray2Xml;
 
 trait CommonsTrait
 {
-    /**
-     * @var \DOMDocument|null
-     */
-    private static $xml = null;
+    private static ?\DOMDocument $xml = null;
 
-    /**
-     * @var string
-     */
-    private static $encoding = 'UTF-8';
+    private static string $encoding = 'UTF-8';
 
-    /**
-     * @var string
-     */
-    private static $prefixAttributes = '@';
+    private static string $prefixAttributes = '@';
 
     /**
      * Initialize the root XML node [optional]
-     *
-     * @param $version
-     * @param $encoding
-     * @param $formatOutput
      */
-    public static function init($version = '1.0', $encoding = 'UTF-8', $formatOutput = true)
+    public static function init(string $version = '1.0', string $encoding = 'UTF-8', bool $formatOutput = true): void
     {
         self::$xml = new \DOMDocument($version, $encoding);
         self::$xml->formatOutput = $formatOutput;
         self::$encoding = $encoding;
     }
 
-    /*
-    * Get the root XML node, if there isn't one, create it.
-    */
-    private static function getXMLRoot()
+    /**
+     * Get the root XML node, if there isn't one, create it.
+     */
+    private static function getXMLRoot(): \DOMDocument
     {
         if (self::$xml === null) {
             self::init();

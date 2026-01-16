@@ -9,10 +9,11 @@
 
 namespace Rafrsr\LibArray2Xml\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Rafrsr\LibArray2Xml\Array2XML;
 use Rafrsr\LibArray2Xml\XML2Array;
 
-class Array2XMLTest extends \PHPUnit_Framework_TestCase
+class Array2XMLTest extends TestCase
 {
     public function testCreateXML()
     {
@@ -23,7 +24,7 @@ class Array2XMLTest extends \PHPUnit_Framework_TestCase
         ];
 
         $xml = Array2XML::createXML('ROOT', $test);
-        self::assertEquals('<ROOT><node><child>string</child></node></ROOT>', preg_replace('/\s/', null, $xml->saveHTML()));
+        self::assertEquals('<ROOT><node><child>string</child></node></ROOT>', preg_replace('/\s/', '', $xml->saveHTML()));
     }
 
     public function testToArrayToXML()
@@ -35,8 +36,8 @@ class Array2XMLTest extends \PHPUnit_Framework_TestCase
         $xml = $xml->saveXML($xml->firstChild->firstChild);
 
         //remove spaces for comparison
-        $sampleFile = preg_replace('/(>)\s+/', null, $sampleFile);
-        $xml = preg_replace('/(>)\s+/', null, $xml);
+        $sampleFile = preg_replace('/(>)\s+/', '', $sampleFile);
+        $xml = preg_replace('/(>)\s+/', '', $xml);
 
         self::assertEquals($sampleFile, $xml);
     }

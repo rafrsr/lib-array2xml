@@ -30,13 +30,13 @@ class XML2Array
     /**
      * Convert an XML to Array
      *
-     * @param string $inputXml - xml to convert
+     * @param string|\DOMDocument $inputXml - xml to convert
      *
      * @return array
      *
      * @throws \InvalidArgumentException
      */
-    public static function createArray($inputXml)
+    public static function createArray(string|\DOMDocument $inputXml): array
     {
         $xml = self::getXMLRoot();
         if (is_string($inputXml)) {
@@ -44,11 +44,10 @@ class XML2Array
             if (!$parsed) {
                 throw new \InvalidArgumentException('[XML2Array] Error parsing the XML string.');
             }
-        } else {
-            if (get_class($inputXml) !== 'DOMDocument') {
-                throw new \InvalidArgumentException('[XML2Array] The input XML object should be of type: DOMDocument.');
-            }
+        } elseif ($inputXml instanceof \DOMDocument) {
             $xml = self::$xml = $inputXml;
+        } else {
+            throw new \InvalidArgumentException('[XML2Array] The input XML object should be of type: DOMDocument.');
         }
         $array = [];
         $array[$xml->documentElement->tagName] = self::convert($xml->documentElement);
@@ -60,11 +59,9 @@ class XML2Array
     /**
      * Convert an Array to XML
      *
-     * @param mixed $node - XML as a string or as an object of DOMDocument
-     *
-     * @return mixed
+     * @param \DOMNode $node - XML as a string or as an object of DOMDocument
      */
-    private static function convert($node)
+    private static function convert(\DOMNode $node): mixed
     {
         $output = [];
 
